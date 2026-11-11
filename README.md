@@ -55,12 +55,15 @@ Tokens are kept in `.auth/` with owner-only permissions and are never printed.
 
 ## What was tested
 
-On 11 November 2026, against a Jira Cloud site with the development build of the app:
+On 11 November 2026, from a laptop outside Atlassian, against two Jira Cloud sites (one running the development build of the app, one the production build):
 
-- The example client (official MCP SDK, Streamable HTTP, OAuth with dynamic client registration and PKCE) connected to the endpoint above, listed five tools and called all five, including `attach-ship-evidence`. The evidence showed up on the Jira work item as attached "through an agent", for the signed-in person.
+- The example client in this repository (official MCP SDK, Streamable HTTP, OAuth with dynamic client registration and PKCE) connected to the endpoint above, listed five tools and called all five, including `attach-ship-evidence`. The evidence showed up on the Jira work item as attached "through an agent", for the signed-in person. A rule that needs a person stayed open until a person confirmed it in Jira.
+- The MCP Inspector CLI listed the same five tools and called `check-ready-to-ship`.
 - A custom agent in Rovo Studio with two of the tools added ran both.
 
-Not tested yet: Claude Code, Cursor or other packaged clients end to end. The endpoint and sign-in flow are the ones Atlassian documents for them.
+Not tested yet: Claude Code, Cursor or other packaged coding agents end to end. The endpoint and sign-in flow are the ones Atlassian documents for them.
+
+One thing we learned: on the day of the test, a call from an external client could not use the signed-in person's own Jira credentials inside the app (Atlassian documents this as a known issue for third-party clients). The app therefore falls back to reading as the app and asking Jira what that person's account may do on that work item, and refuses when Jira does not confirm it.
 
 ## Licence
 
