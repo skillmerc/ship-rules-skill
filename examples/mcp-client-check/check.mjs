@@ -19,7 +19,8 @@ const APP_ID = process.env.SHIP_RULES_APP_ID || '932dfe8d-13dd-4afd-9d48-5ffcaa2
 const SERVER = new URL(process.env.SHIP_RULES_MCP_URL || `https://mcp.atlassian.com/forge/${APP_ID}`);
 const PORT = Number(process.env.MCP_CALLBACK_PORT || 33418);
 const REDIRECT = `http://localhost:${PORT}/callback`;
-const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '.auth', APP_ID);
+// MCP_PROFILE keeps separate sign-ins apart, for example one per Jira site.
+const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '.auth', APP_ID + (process.env.MCP_PROFILE ? `-${process.env.MCP_PROFILE.replace(/[^a-z0-9-]/gi, '')}` : ''));
 fs.mkdirSync(DIR, { recursive: true, mode: 0o700 });
 const file = (n) => path.join(DIR, n);
 const read = (n) => { try { return JSON.parse(fs.readFileSync(file(n), 'utf8')); } catch { return undefined; } };
@@ -33,8 +34,8 @@ const provider = {
   tokens: () => read('tokens.json'),
   saveTokens: (v) => write('tokens.json', v),
   redirectToAuthorization: (url) => {
-    // Ask only for what the Ship Rules tools need, not every scope the server offers.
-    if (process.env.MCP_SCOPE !== 'all') url.searchParams.set('scope', process.env.MCP_SCOPE || 'read:me read:jira-work write:jira-work offline_access');
+    // The client asks for the scopes the server advertises. On 11 Nov 2026 Atlassian's sign-in page rejected a narrower list, so MCP_SCOPE is only an override for testing.
+    if (process.env.MCP_SCOPE) url.searchParams.set('scope', process.env.MCP_SCOPE);
     write('auth-url.txt', url.toString()); console.log(`SIGN-IN LINK WRITTEN to ${file('auth-url.txt')} (open it in the browser)`); },
   saveCodeVerifier: (v) => write('verifier.txt', v),
   codeVerifier: () => fs.readFileSync(file('verifier.txt'), 'utf8'),
